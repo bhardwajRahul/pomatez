@@ -155,10 +155,14 @@ addPlatformUpdater(
   /\.tar\.gz$/,
   "darwin-universal"
 );
-// Need to look into linus for arm, I don't believe it's supported for tauri at least.
 addPlatformUpdater(
   "linux-x86_64",
   "tauri-linux/x86_64-unknown-linux-gnu/release/bundle/appimage",
+  /\.AppImage.tar.gz$/
+);
+addPlatformUpdater(
+  "linux-aarch64",
+  "tauri-linux-arm/aarch64-unknown-linux-gnu/release/bundle/appimage",
   /\.AppImage.tar.gz$/
 );
 addPlatformUpdater(
