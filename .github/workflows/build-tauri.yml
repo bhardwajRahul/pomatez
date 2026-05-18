@@ -14,6 +14,11 @@ on:
         required: false
         default: ""
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to (use 'Release' for signed release builds)"
+        type: environment
+        required: false
 jobs:
   build:
     name: "Test Build"
@@ -26,18 +31,16 @@ jobs:
         include:
           - os: ubuntu-latest
             name: linux
-            # https://tauri.app/v1/guides/building/linux#cross-compiling-tauri-applications-for-arm-based-devices
-            # Cross Compiling is also more of a pain it seems for linux atm, explore later
             targets: "x86_64-unknown-linux-gnu"
-            tauri_target: ["x86_64-unknown-linux-gnu"]
+            tauri_target: ["'x86_64-unknown-linux-gnu --bundles deb,appimage,updater'"]
+          - os: ubuntu-24.04-arm
+            name: linux-arm
+            targets: "aarch64-unknown-linux-gnu"
+            tauri_target: ["'aarch64-unknown-linux-gnu --bundles deb,appimage,updater'"]
           - os: macos-latest
             name: mac
             targets: "aarch64-apple-darwin,x86_64-apple-darwin"
-            tauri_target: ["universal-apple-darwin"]
-          - os: ubuntu-latest
-            name: linux-arm
-            targets: "aarch64-unknown-linux-gnu"
-            tauri_target: ["aarch64-unknown-linux-gnu"]
+            tauri_target: ["'universal-apple-darwin --bundles app,dmg,updater'"]
           - os: windows-latest
             name: win
             targets: "aarch64-pc-windows-msvc,x86_64-pc-windows-msvc"
@@ -67,7 +70,7 @@ jobs:
         with:
           workspaces: "./app/tauri -> target"
       - name: install dependencies (ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1 build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev javascriptcoregtk-4.1 libglib2.0-dev
@@ -136,16 +139,16 @@ jobs:
         with:
           name: tauri-mac
           path: artifacts/tauri-mac
-      - name: Download Linux Arm
-        uses: actions/download-artifact@v3
-        with:
-          name: tauri-linux-arm
-          path: artifacts/tauri-linux-arm
       - name: Download Linux
         uses: actions/download-artifact@v4
         with:
           name: tauri-linux
           path: artifacts/tauri-linux
+      - name: Download Linux ARM
+        uses: actions/download-artifact@v4
+        with:
+          name: tauri-linux-arm
+          path: artifacts/tauri-linux-arm
       - name: Use Node.js 24.x
         uses: actions/setup-node@v6
         with:

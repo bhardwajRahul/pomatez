@@ -81,6 +81,12 @@ function addPlatformUpdater(
   nameOverwrite
 ) {
   const fullPath = path.join(artifactsPath, artifactSubPath);
+  if (!fs.existsSync(fullPath)) {
+    console.warn(
+      `[SKIP] ${platform}: artifact path not found (expected for non-release builds): ${fullPath}`
+    );
+    return;
+  }
   const files = fs.readdirSync(fullPath);
   const file = files.find((file) => file.match(fileGlob));
 
@@ -155,10 +161,14 @@ addPlatformUpdater(
   /\.tar\.gz$/,
   "darwin-universal"
 );
-// Need to look into linus for arm, I don't believe it's supported for tauri at least.
 addPlatformUpdater(
   "linux-x86_64",
   "tauri-linux/x86_64-unknown-linux-gnu/release/bundle/appimage",
+  /\.AppImage.tar.gz$/
+);
+addPlatformUpdater(
+  "linux-aarch64",
+  "tauri-linux-arm/aarch64-unknown-linux-gnu/release/bundle/appimage",
   /\.AppImage.tar.gz$/
 );
 addPlatformUpdater(
